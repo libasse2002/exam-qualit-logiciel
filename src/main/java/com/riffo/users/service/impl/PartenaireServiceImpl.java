@@ -1,9 +1,9 @@
 package com.riffo.users.service.impl;
 
 import com.riffo.users.entity.Partenaire;
+import com.riffo.users.exception.PartenaireNotFoundException;
 import com.riffo.users.repository.PartenaireRepository;
 import com.riffo.users.service.PartenaireService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,14 +11,23 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Implémentation du service de gestion des partenaires
+ * Implémentation du service de gestion des partenaires.
+ *
+ * corrections :
+ * - Injection par constructeur
+ * - PartenaireNotFoundException pour les cas "non trouvé" (404 vs 400)
+ * - existsByEmail utilise la méthode native du repository
  */
 @Service
 @Transactional
 public class PartenaireServiceImpl implements PartenaireService {
 
-    @Autowired
-    private PartenaireRepository partenaireRepository;
+    private final PartenaireRepository partenaireRepository;
+
+    /** Injection par constructeur (CORRECTION : remplace @Autowired sur champ). */
+    public PartenaireServiceImpl(PartenaireRepository partenaireRepository) {
+        this.partenaireRepository = partenaireRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -67,78 +76,54 @@ public class PartenaireServiceImpl implements PartenaireService {
         if (partenaire == null) {
             throw new IllegalArgumentException("Le partenaire ne peut pas être null");
         }
-        
-        // Vérifier si l'email existe déjà
         if (existsByEmail(partenaire.getEmail())) {
-            throw new IllegalArgumentException("Un partenaire avec cet email existe déjà");
+            throw new IllegalArgumentException(
+                    "Un partenaire avec l'email '" + partenaire.getEmail() + "' existe déjà");
         }
-        
         return partenaireRepository.save(partenaire);
     }
 
     @Override
     public Partenaire updatePartenaire(Long id, Partenaire partenaire) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("L'ID du partenaire est invalide");
-        }
-        
         if (partenaire == null) {
             throw new IllegalArgumentException("Le partenaire ne peut pas être null");
         }
-        
-        Optional<Partenaire> partenaireExistant = partenaireRepository.findById(id);
-        
-        if (partenaireExistant.isEmpty()) {
-            throw new IllegalArgumentException("Le partenaire avec l'ID " + id + " n'existe pas");
-        }
-        
-        Partenaire p = partenaireExistant.get();
-        
-        // Mettre à jour les champs
-        if (partenaire.getNom() != null) {
-            p.setNom(partenaire.getNom());
-        }
-        if (partenaire.getCategorie() != null) {
-            p.setCategorie(partenaire.getCategorie());
-        }
-        if (partenaire.getAdresse() != null) {
-            p.setAdresse(partenaire.getAdresse());
-        }
-        if (partenaire.getVille() != null) {
-            p.setVille(partenaire.getVille());
-        }
-        if (partenaire.getTéléphone() != null) {
-            p.setTéléphone(partenaire.getTéléphone());
-        }
-        if (partenaire.getEmail() != null) {
-            p.setEmail(partenaire.getEmail());
-        }
-        if (partenaire.getLatitude() != null) {
-            p.setLatitude(partenaire.getLatitude());
-        }
-        if (partenaire.getLongitude() != null) {
-            p.setLongitude(partenaire.getLongitude());
-        }
-        if (partenaire.getStatut() != null) {
-            p.setStatut(partenaire.getStatut());
-        }
+        // correct : PartenaireNotFoundException (404) au lieu de
+        // IllegalArgumentException (400)
+        Partenaire existing = partenaireRepository.findById(id)
+                .orElseThrow(() -> new PartenaireNotFoundException(id));
+
+        if (partenaire.getNom() != null)
+            existing.setNom(partenaire.getNom());
+        if (partenaire.getCategorie() != null)
+            existing.setCategorie(partenaire.getCategorie());
+        if (partenaire.getAdresse() != null)
+            existing.setAdresse(partenaire.getAdresse());
+        if (partenaire.getVille() != null)
+            existing.setVille(partenaire.getVille());
+        if (partenaire.getTelephone() != null)
+            existing.setTelephone(partenaire.getTelephone());
+        if (partenaire.getEmail() != null)
+            existing.setEmail(partenaire.getEmail());
+        if (partenaire.getLatitude() != null)
+            existing.setLatitude(partenaire.getLatitude());
+        if (partenaire.getLongitude() != null)
+            existing.setLongitude(partenaire.getLongitude());
+        if (partenaire.getStatut() != null)
+            existing.setStatut(partenaire.getStatut());
         if (partenaire.getPlafondPriseEnCharge() != null) {
-            p.setPlafondPriseEnCharge(partenaire.getPlafondPriseEnCharge());
+            existing.setPlafondPriseEnCharge(partenaire.getPlafondPriseEnCharge());
         }
-        
-        return partenaireRepository.save(p);
+        return partenaireRepository.save(existing);
     }
 
     @Override
     public void deletePartenaire(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("L'ID du partenaire est invalide");
-        }
-        
+        // correct : PartenaireNotFoundException (404) au lieu de
+        // IllegalArgumentException (400)
         if (!partenaireRepository.existsById(id)) {
-            throw new IllegalArgumentException("Le partenaire avec l'ID " + id + " n'existe pas");
+            throw new PartenaireNotFoundException(id);
         }
-        
         partenaireRepository.deleteById(id);
     }
 
@@ -151,6 +136,8 @@ public class PartenaireServiceImpl implements PartenaireService {
     @Override
     @Transactional(readOnly = true)
     public boolean existsByEmail(String email) {
-        return partenaireRepository.findByEmail(email).isPresent();
+        // correct : utilisation de existsByEmail du repository (requête COUNT plus
+        // efficace)
+        return partenaireRepository.existsByEmail(email);
     }
 }

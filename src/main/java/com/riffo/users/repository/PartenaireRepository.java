@@ -8,49 +8,25 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository pour l'entité Partenaire
+ * Repository Spring Data JPA pour l'entité Partenaire.
+ *
+ * correct : findByCategorie renommé pour correspondre au nouveau nom
+ * de champ ASCII "categorie" (était "catégorie" avec accent).
  */
 @Repository
 public interface PartenaireRepository extends JpaRepository<Partenaire, Long> {
 
-    /**
-     * Recherche un partenaire par son nom
-     * @param nom le nom du partenaire
-     * @return un Optional contenant le partenaire s'il existe
-     */
     Optional<Partenaire> findByNom(String nom);
 
-    /**
-     * Recherche tous les partenaires par catégorie
-     * @param catégorie la catégorie du partenaire
-     * @return une liste de partenaires
-     */
-    List<Partenaire> findByCategorie(String catégorie);
+    List<Partenaire> findByCategorie(String categorie);
 
-    /**
-     * Recherche tous les partenaires par statut
-     * @param statut le statut du partenaire
-     * @return une liste de partenaires
-     */
     List<Partenaire> findByStatut(String statut);
 
-    /**
-     * Recherche tous les partenaires par ville
-     * @param ville la ville du partenaire
-     * @return une liste de partenaires
-     */
     List<Partenaire> findByVille(String ville);
 
-    /**
-     * Recherche un partenaire par son email
-     * @param email l'email du partenaire
-     * @return un Optional contenant le partenaire s'il existe
-     */
     Optional<Partenaire> findByEmail(String email);
 
-    /**
-     * Recherche tous les partenaires avec un statut actif
-     * @return une liste de partenaires actifs
-     */
     List<Partenaire> findByStatutIgnoreCase(String statut);
+
+    boolean existsByEmail(String email);
 }
