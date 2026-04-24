@@ -59,7 +59,7 @@ class PartenaireControllerIntegrationTest {
     // POST /api/partenaires
 
     @Test
-    @DisplayName("POST /partenaires avec données valides -> 201 Created")
+    @DisplayName("POST /partenaires avec données valides -> 201 Created (FIXED VERSION)")
     void postPartenaire_shouldReturn201_whenValid() throws Exception {
         mockMvc.perform(post("/partenaires")
                 .contentType(MediaType.APPLICATION_JSON)
