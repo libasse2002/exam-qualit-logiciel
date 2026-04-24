@@ -65,8 +65,8 @@ class PartenaireControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(partenaireSample)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nom", is("Clinique de la Madeleine")))
-                .andExpect(jsonPath("$.email", is("madeleine@clinique.sn")))
+                .andExpect(jsonPath("$.nom", is("Clinique Limamou")))
+                .andExpect(jsonPath("$.email", is("limamou@clinique.sn")))
                 .andExpect(jsonPath("$.id").exists());
     }
 
